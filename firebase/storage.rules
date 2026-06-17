@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Conversation audio lives at audio/{uid}/{conversationId}/...
+// Owner can read their own audio; all writes are server-side via Admin SDK.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /audio/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

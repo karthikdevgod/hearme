@@ -1,0 +1,51 @@
+rules_version = '2';
+
+// HearMe Firestore security rules.
+// Principle: a user can read/write only their own documents. All privileged
+// writes (costs, plans, reports, metrics) go through the NestJS api using the
+// Admin SDK, which bypasses these rules — so clients are read-only for those.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isAdmin() { return isSignedIn() && request.auth.token.role == 'admin'; }
+
+    // User profile + settings — owner read; client may set profile basics,
+    // but server-owned fields are written via Admin SDK.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid);
+      match /settings/{doc} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // Conversations + messages — owner read only; writes are server-side.
+    match /conversations/{cid} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+      match /messages/{mid} {
+        allow read: if isSignedIn()
+          && get(/databases/$(database)/documents/conversations/$(cid)).data.userId == request.auth.uid;
+        allow write: if false;
+      }
+    }
+
+    // Reports, memory, usage, credits, billing — owner read; server writes.
+    match /reports/{rid} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    match /memories/{uid} { allow read: if isOwner(uid); allow write: if false; }
+    match /usage/{uid}/{document=**} { allow read: if isOwner(uid); allow write: if false; }
+    match /credits/{uid} { allow read: if isOwner(uid); allow write: if false; }
+    match /billing/{document=**} { allow read: if isAdmin(); allow write: if false; }
+
+    // Public, read-only reference data.
+    match /plans/{pid} { allow read: if true; allow write: if false; }
+    match /voices/{vid} { allow read: if true; allow write: if false; }
+
+    // Admin metrics — admin only.
+    match /admin/{document=**} { allow read: if isAdmin(); allow write: if false; }
+  }
+}

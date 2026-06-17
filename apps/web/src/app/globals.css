@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * HearMe brand palette (from approved design kit):
+ *   primary indigo  #5B5BEF   secondary lavender #9D8DF1
+ *   success green   #10B981   warning amber      #F59E0B
+ *   navy            #111827   background         #F8FAFC
+ */
+:root {
+  --background: 210 40% 98%; /* #F8FAFC */
+  --foreground: 222 47% 11%; /* #111827 */
+  --muted: 226 60% 96%;
+  --muted-foreground: 222 16% 45%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --primary: 240 82% 65%; /* #5B5BEF */
+  --primary-foreground: 0 0% 100%;
+  --accent: 250 78% 75%; /* #9D8DF1 */
+  --accent-foreground: 222 47% 11%;
+
+  --success: 160 84% 39%; /* #10B981 */
+  --warning: 38 92% 50%; /* #F59E0B */
+
+  --border: 226 30% 91%;
+  --radius: 1rem;
+
+  /* Dashboard sidebar (dark navy) */
+  --sidebar: 222 47% 11%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-muted: 222 25% 65%;
+
+  /* Hero gradient wash */
+  --hero-from: 250 100% 97%;
+  --hero-to: 210 40% 98%;
+}
+
+.dark {
+  --background: 222 47% 9%;
+  --foreground: 210 40% 96%;
+  --muted: 222 30% 16%;
+  --muted-foreground: 222 16% 65%;
+  --card: 222 40% 12%;
+  --card-foreground: 210 40% 96%;
+  --primary: 240 82% 68%;
+  --primary-foreground: 222 47% 9%;
+  --accent: 250 78% 75%;
+  --accent-foreground: 222 47% 9%;
+  --border: 222 25% 22%;
+  --sidebar: 222 47% 8%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-muted: 222 16% 60%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}

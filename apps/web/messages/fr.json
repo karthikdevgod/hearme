@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "HearMe — A safe space to talk, reflect, and feel heard",
+    "description": "HearMe is a voice-first AI conversation companion. Talk freely in your language, reflect, and get meaningful insights, summaries, and mood reports. Not therapy — a space to feel heard."
+  },
+  "nav": {
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "about": "About",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "eyebrow": "Voice-first AI companion",
+    "title": "A safe space to talk, reflect, and feel heard.",
+    "subtitle": "Talk freely in your language. HearMe listens, reflects with you, and turns your conversations into insights, summaries, and mood reports.",
+    "ctaPrimary": "Start talking free",
+    "ctaSecondary": "How it works",
+    "disclaimer": "HearMe is a reflection and support companion — not a therapist and not a medical service."
+  },
+  "features": {
+    "title": "Built to help you reflect",
+    "voice": { "title": "Just talk", "body": "Push to talk in your own language and pace. No typing, no judgement." },
+    "memory": { "title": "Remembers what matters", "body": "Recalls your goals and recurring themes across conversations." },
+    "reports": { "title": "Meaningful reports", "body": "Each conversation becomes a summary with mood and reflection prompts." },
+    "private": { "title": "Private by design", "body": "Your conversations are yours. Control your data and retention." }
+  },
+  "faq": {
+    "title": "Questions, answered",
+    "q1": { "q": "Is HearMe a replacement for therapy?", "a": "No. HearMe is a reflection and emotional-support companion. It does not diagnose or treat any condition. If you are in crisis, please contact a local helpline." },
+    "q2": { "q": "Which languages can I speak?", "a": "English, Hindi, Hinglish, German, Spanish, French, Arabic, Portuguese, and Japanese — with more added over time." }
+  }
+}
