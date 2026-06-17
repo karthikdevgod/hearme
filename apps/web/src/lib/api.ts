@@ -25,3 +25,22 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
+
+/**
+ * Uploads multipart form data (e.g. a recorded audio turn) with the Firebase ID
+ * token attached. Lets the browser set the multipart Content-Type + boundary.
+ */
+export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  const current = getFirebaseAuth().currentUser;
+  const token = current ? await current.getIdToken() : null;
+  const headers = new Headers();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const res = await fetch(`${BASE}${path}`, { method: 'POST', body: form, headers });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`API ${res.status}: ${body || res.statusText}`);
+  }
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}

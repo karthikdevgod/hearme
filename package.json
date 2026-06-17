@@ -5,7 +5,7 @@
   "description": "HearMe — a voice-first AI conversation companion. A safe space to talk, reflect, and feel heard.",
   "packageManager": "pnpm@10.32.1",
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   },
   "scripts": {
     "dev": "turbo run dev",

@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { VoiceGateway } from './voice.gateway';
+import { VoiceController } from './voice.controller';
 import { VoiceService } from './voice.service';
 
-/** Voice module (Phase 2 core): WebSocket gateway + streaming STT→LLM→TTS orchestration. */
+/** Voice module (Phase 2): turn-based STT→LLM→TTS pipeline + cost metering. */
 @Module({
-  providers: [VoiceGateway, VoiceService],
+  controllers: [VoiceController],
+  providers: [VoiceService],
 })
 export class VoiceModule {}
