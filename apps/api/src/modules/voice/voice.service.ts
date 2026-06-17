@@ -10,6 +10,7 @@ import { toFile } from 'openai';
 import type { ServerEnv } from '@hearme/config';
 import type { ConversationCosts, Memory } from '@hearme/shared';
 import { ENV } from '../../common/config/config.module';
+import { AnthropicService } from '../../infrastructure/anthropic/anthropic.service';
 import { ElevenLabsService } from '../../infrastructure/elevenlabs/elevenlabs.service';
 import { FirebaseService } from '../../infrastructure/firebase/firebase.service';
 import { OpenAIService } from '../../infrastructure/openai/openai.service';
@@ -46,6 +47,7 @@ export class VoiceService {
   constructor(
     @Inject(ENV) private readonly env: ServerEnv,
     private readonly openai: OpenAIService,
+    private readonly anthropic: AnthropicService,
     private readonly elevenlabs: ElevenLabsService,
     private readonly firebase: FirebaseService,
   ) {}
@@ -90,14 +92,8 @@ export class VoiceService {
 
     const turnSeconds = Math.max(1, Math.round(durationMs / 1000));
 
-    // 1) Speech-to-text
-    const file = await toFile(audio, `turn.${this.ext(mimeType)}`, { type: mimeType });
-    const transcription = await this.openai.client.audio.transcriptions.create({
-      file,
-      model: this.openai.sttModel,
-    });
-    const userText = (transcription.text ?? '').trim();
-    const sttCost = this.openai.sttCost(turnSeconds);
+    // 1) Speech-to-text (provider configurable: openai | elevenlabs)
+    const { text: userText, cost: sttCost } = await this.transcribe(audio, mimeType, turnSeconds);
 
     if (!userText) {
       // Nothing heard — don't bill LLM/TTS; just report back.
@@ -123,22 +119,8 @@ export class VoiceService {
       memory,
     });
 
-    // 3) LLM
-    const completion = await this.openai.client.chat.completions.create({
-      model: this.openai.chatModel,
-      temperature: 0.8,
-      max_tokens: 220,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...history,
-        { role: 'user', content: userText },
-      ],
-    });
-    const assistantText = (completion.choices[0]?.message?.content ?? '').trim();
-    const llmCost = this.openai.llmCost(
-      completion.usage?.prompt_tokens ?? 0,
-      completion.usage?.completion_tokens ?? 0,
-    );
+    // 3) LLM (provider configurable: anthropic | openai)
+    const { text: assistantText, cost: llmCost } = await this.chat(systemPrompt, history, userText);
 
     // 4) TTS
     const audioOut = await this.elevenlabs.tts(conv.voiceId, assistantText);
@@ -179,6 +161,56 @@ export class VoiceService {
     await convRef.set({ endedAt: FieldValue.serverTimestamp() }, { merge: true });
     // Phase 3 hooks report + memory generation here.
     return { conversationId };
+  }
+
+  // ── providers ──
+
+  /** Transcribe a turn via the configured STT provider; returns text + USD cost. */
+  private async transcribe(
+    audio: Buffer,
+    mimeType: string,
+    seconds: number,
+  ): Promise<{ text: string; cost: number }> {
+    if (this.env.STT_PROVIDER === 'elevenlabs') {
+      const text = await this.elevenlabs.transcribe(audio, mimeType);
+      return { text, cost: this.elevenlabs.sttCost(seconds) };
+    }
+    const file = await toFile(audio, `turn.${this.ext(mimeType)}`, { type: mimeType });
+    const transcription = await this.openai.client.audio.transcriptions.create({
+      file,
+      model: this.openai.sttModel,
+    });
+    return { text: (transcription.text ?? '').trim(), cost: this.openai.sttCost(seconds) };
+  }
+
+  /** Generate the assistant reply via the configured LLM provider; returns text + USD cost. */
+  private async chat(
+    systemPrompt: string,
+    history: ChatMsg[],
+    userText: string,
+  ): Promise<{ text: string; cost: number }> {
+    const maxTokens = 220;
+    if (this.env.LLM_PROVIDER === 'anthropic') {
+      const r = await this.anthropic.chat(systemPrompt, [...history, { role: 'user', content: userText }], maxTokens);
+      return { text: r.text, cost: this.anthropic.llmCost(r.inputTokens, r.outputTokens) };
+    }
+    const completion = await this.openai.client.chat.completions.create({
+      model: this.openai.chatModel,
+      temperature: 0.8,
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...history,
+        { role: 'user', content: userText },
+      ],
+    });
+    return {
+      text: (completion.choices[0]?.message?.content ?? '').trim(),
+      cost: this.openai.llmCost(
+        completion.usage?.prompt_tokens ?? 0,
+        completion.usage?.completion_tokens ?? 0,
+      ),
+    };
   }
 
   // ── helpers ──

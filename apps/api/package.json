@@ -11,6 +11,7 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
     "@hearme/config": "workspace:*",
     "@hearme/shared": "workspace:*",
     "@nestjs/common": "^11.0.1",

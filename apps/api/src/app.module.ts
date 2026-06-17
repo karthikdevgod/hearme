@@ -6,6 +6,7 @@ import { loadServerEnv } from '@hearme/config';
 import { ConfigModule } from './common/config/config.module';
 import { FirebaseModule } from './infrastructure/firebase/firebase.module';
 import { OpenAIModule } from './infrastructure/openai/openai.module';
+import { AnthropicModule } from './infrastructure/anthropic/anthropic.module';
 import { ElevenLabsModule } from './infrastructure/elevenlabs/elevenlabs.module';
 import { StripeModule } from './infrastructure/stripe/stripe.module';
 
@@ -30,6 +31,7 @@ const env = loadServerEnv(process.env);
     ConfigModule,
     FirebaseModule,
     OpenAIModule,
+    AnthropicModule,
     ElevenLabsModule,
     StripeModule,
     ThrottlerModule.forRoot([{ ttl: env.RATE_LIMIT_TTL * 1000, limit: env.RATE_LIMIT_MAX }]),

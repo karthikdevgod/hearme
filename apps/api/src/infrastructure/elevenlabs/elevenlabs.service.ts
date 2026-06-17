@@ -62,6 +62,29 @@ export class ElevenLabsService {
   ttsCost(text: string): number {
     return (text.length / 1000) * this.env.ELEVENLABS_TTS_COST_PER_1K_CHARS;
   }
+
+  /** Transcribe audio with ElevenLabs Scribe (speech-to-text). */
+  async transcribe(audio: Buffer, mimeType: string): Promise<string> {
+    const form = new FormData();
+    form.append('model_id', this.env.ELEVENLABS_STT_MODEL);
+    form.append('file', new Blob([new Uint8Array(audio)], { type: mimeType }), 'audio');
+    const res = await fetch(`${BASE_URL}/speech-to-text`, {
+      method: 'POST',
+      headers: { 'xi-api-key': this.env.ELEVENLABS_API_KEY },
+      body: form,
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      throw new Error(`ElevenLabs STT failed: ${res.status} ${detail.slice(0, 200)}`);
+    }
+    const data = (await res.json()) as { text?: string };
+    return (data.text ?? '').trim();
+  }
+
+  /** USD cost for transcribing `seconds` of audio. */
+  sttCost(seconds: number): number {
+    return (seconds / 60) * this.env.ELEVENLABS_STT_COST_PER_MINUTE;
+  }
 }
 
 interface ElevenLabsVoice {

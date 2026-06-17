@@ -49,18 +49,30 @@ export function loadServerEnv(raw: Record<string, string | undefined> = process.
     // Retention
     AUDIO_RETENTION_DAYS: zNum(30),
 
+    // AI providers (swap STT/LLM without code changes)
+    STT_PROVIDER: z.enum(['openai', 'elevenlabs']).default('openai'),
+    LLM_PROVIDER: z.enum(['openai', 'anthropic']).default('openai'),
+
     // OpenAI
-    OPENAI_API_KEY: zSecret(isProd),
+    OPENAI_API_KEY: z.string().optional().default(''),
     OPENAI_CHAT_MODEL: z.string().default('gpt-4o'),
     OPENAI_STT_MODEL: z.string().default('gpt-4o-transcribe'),
     OPENAI_LLM_INPUT_COST_PER_1M: zNum(2.5),
     OPENAI_LLM_OUTPUT_COST_PER_1M: zNum(10),
     OPENAI_STT_COST_PER_MINUTE: zNum(0.006),
 
-    // ElevenLabs
+    // Anthropic (Claude)
+    ANTHROPIC_API_KEY: z.string().optional().default(''),
+    ANTHROPIC_MODEL: z.string().default('claude-opus-4-8'),
+    ANTHROPIC_INPUT_COST_PER_1M: zNum(5),
+    ANTHROPIC_OUTPUT_COST_PER_1M: zNum(25),
+
+    // ElevenLabs (TTS always; STT via Scribe when STT_PROVIDER=elevenlabs)
     ELEVENLABS_API_KEY: zSecret(isProd),
     ELEVENLABS_MODEL: z.string().default('eleven_multilingual_v2'),
+    ELEVENLABS_STT_MODEL: z.string().default('scribe_v1'),
     ELEVENLABS_TTS_COST_PER_1K_CHARS: zNum(0.3),
+    ELEVENLABS_STT_COST_PER_MINUTE: zNum(0.0067),
 
     // Stripe
     STRIPE_SECRET_KEY: zSecret(isProd),
